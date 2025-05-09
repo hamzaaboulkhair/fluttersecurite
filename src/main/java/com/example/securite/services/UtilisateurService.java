@@ -22,9 +22,17 @@ public class UtilisateurService {
         return utilisateurRepository.findById(id);
     }
 
-    public Utilisateur getUtilisateurByUsername(String username) {
-        return utilisateurRepository.findByNom(username);
+    public Optional<Utilisateur> getUtilisateurByUsername(String username) {
+        List<Utilisateur> utilisateurs = utilisateurRepository.findByNom(username);
+
+        if (utilisateurs.isEmpty()) {
+            return Optional.empty();
+        }
+
+        // Prendre le premier utilisateur trouvé (vous pourriez ajouter une logique de sélection plus sophistiquée ici)
+        return Optional.of(utilisateurs.get(0));
     }
+
 
     public  Optional<Utilisateur> getUtilisateurByEmail(String email) {
         return utilisateurRepository.findByEmail(email);
@@ -37,5 +45,6 @@ public class UtilisateurService {
     public void deleteUtilisateur(Long id) {
         utilisateurRepository.deleteById(id);
     }
+
 
 }

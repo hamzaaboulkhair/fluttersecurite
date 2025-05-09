@@ -5,17 +5,15 @@ import com.example.securite.services.ObjetVisiteService;
 import com.example.securite.services.ParticipationService;
 import com.example.securite.services.UtilisateurService;
 import com.example.securite.services.VisiteSecuriteService;
-
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.*;
-
-import org.springframework.beans.factory.annotation.Autowired;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/visites")
@@ -41,6 +39,119 @@ public class VisiteSecuriteController {
     public Optional<VisiteSecurite> getVisiteById(@PathVariable Long id) {
         return visiteSecuriteService.getVisiteById(id);
     }
+
+    @GetMapping("/aps/{apsId}")
+    public ResponseEntity<?> getVisitesForAps(@PathVariable Long apsId) {
+        try {
+            List<VisiteSecurite> visites = visiteSecuriteService.getVisitesByAps(apsId);
+
+            if (visites.isEmpty()) {
+                return ResponseEntity.noContent().build();
+            }
+
+            // Conversion en DTO
+            List<Map<String, Object>> response = visites.stream()
+                    .map(visite -> {
+                        Map<String, Object> visiteMap = new HashMap<>();
+                        visiteMap.put("id", visite.getId());
+                        visiteMap.put("date", visite.getDate());
+                        visiteMap.put("heureDebut", visite.getHeureDebut());
+                        visiteMap.put("heureFin", visite.getHeureFin());
+                        visiteMap.put("etat", visite.getEtat());
+
+                        // Objet de visite
+                        if (visite.getObjetVisite() != null) {
+                            Map<String, Object> objetMap = new HashMap<>();
+                            objetMap.put("id", visite.getObjetVisite().getId());
+                            objetMap.put("localisation", visite.getObjetVisite().getLocalisation());
+                            visiteMap.put("objetVisite", objetMap);
+                        }
+
+                        // Participants
+                        List<Map<String, String>> participants = visite.getParticipants().stream()
+                                .map(p -> {
+                                    Map<String, String> participant = new HashMap<>();
+                                    if (p.getVisiteur() != null) {
+                                        participant.put("type", "VISITEUR");
+                                        participant.put("nom", p.getVisiteur().getNom());
+                                    } else if (p.getAps() != null) {
+                                        participant.put("type", "APS");
+                                        participant.put("nom", p.getAps().getNom());
+                                    } else if (p.getResponsable() != null) {
+                                        participant.put("type", "RESPONSABLE");
+                                        participant.put("nom", p.getResponsable().getNom());
+                                    }
+                                    return participant;
+                                })
+                                .collect(Collectors.toList());
+
+                        visiteMap.put("participants", participants);
+                        return visiteMap;
+                    })
+                    .collect(Collectors.toList());
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Erreur lors de la récupération des visites: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/responsable/{responsableId}")
+    public ResponseEntity<?> getVisitesForResponsable(@PathVariable Long responsableId) {
+        try {
+            List<VisiteSecurite> visites = visiteSecuriteService.getVisitesByResponsable(responsableId);
+
+            if (visites.isEmpty()) {
+                return ResponseEntity.noContent().build();
+            }
+
+            List<Map<String, Object>> response = visites.stream()
+                    .map(visite -> {
+                        Map<String, Object> visiteMap = new HashMap<>();
+                        visiteMap.put("id", visite.getId());
+                        visiteMap.put("date", visite.getDate());
+                        visiteMap.put("heureDebut", visite.getHeureDebut());
+                        visiteMap.put("heureFin", visite.getHeureFin());
+                        visiteMap.put("etat", visite.getEtat());
+
+                        if (visite.getObjetVisite() != null) {
+                            Map<String, Object> objetMap = new HashMap<>();
+                            objetMap.put("id", visite.getObjetVisite().getId());
+                            objetMap.put("localisation", visite.getObjetVisite().getLocalisation());
+                            visiteMap.put("objetVisite", objetMap);
+                        }
+
+                        List<Map<String, String>> participants = visite.getParticipants().stream()
+                                .map(p -> {
+                                    Map<String, String> participant = new HashMap<>();
+                                    if (p.getVisiteur() != null) {
+                                        participant.put("type", "VISITEUR");
+                                        participant.put("nom", p.getVisiteur().getNom());
+                                    } else if (p.getAps() != null) {
+                                        participant.put("type", "APS");
+                                        participant.put("nom", p.getAps().getNom());
+                                    } else if (p.getResponsable() != null) {
+                                        participant.put("type", "RESPONSABLE");
+                                        participant.put("nom", p.getResponsable().getNom());
+                                    }
+                                    return participant;
+                                })
+                                .collect(Collectors.toList());
+
+                        visiteMap.put("participants", participants);
+                        return visiteMap;
+                    })
+                    .collect(Collectors.toList());
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Erreur lors de la récupération des visites: " + e.getMessage());
+        }
+    }
+
 
     @GetMapping("/utilisateur/{id}")
     public ResponseEntity<List<Map<String, Object>>> getVisitesByUtilisateur(@PathVariable Long id) {
@@ -167,7 +278,7 @@ public class VisiteSecuriteController {
             participantsList.add(participantMap);
         }
 
-        System.out.println("📌 Participants pour la visite ID " + id + " : " + participantsList);
+        System.out.println(" Participants pour la visite ID " + id + " : " + participantsList);
         visiteMap.put("participants", participantsList);
 
         return ResponseEntity.ok(visiteMap);
@@ -226,6 +337,8 @@ public class VisiteSecuriteController {
 
             participationService.createParticipation(participation);
             System.out.println("✅ Participation enregistrée pour l'utilisateur " + utilisateurActuel.getNom());
+        } else {
+            System.out.println("⚠️ Aucun utilisateur trouvé pour l'utilisateurId : " + utilisateurId);
         }
 
         // ✅ Ajouter les autres participants envoyés dans la requête
@@ -233,9 +346,12 @@ public class VisiteSecuriteController {
             List<Map<String, Object>> participantsData = (List<Map<String, Object>>) requestBody.get("participants");
             for (Map<String, Object> participantMap : participantsData) {
                 String nomParticipant = (String) participantMap.get("nom");
-                Utilisateur utilisateur = utilisateurService.getUtilisateurByUsername(nomParticipant);
 
-                if (utilisateur != null) {
+                // Now handle the `utilisateurs` list correctly by using `getUtilisateurByUsername`
+                Optional<Utilisateur> utilisateurs = utilisateurService.getUtilisateurByUsername(nomParticipant);
+
+                if (utilisateurs != null && !utilisateurs.isEmpty()) {
+                    Utilisateur utilisateur = utilisateurs.get(); // Get the first user, assuming they are unique now
                     Participation participation = new Participation();
                     participation.setVisite(savedVisite);
 
@@ -250,13 +366,14 @@ public class VisiteSecuriteController {
                     participationService.createParticipation(participation);
                     System.out.println("✅ Participation ajoutée pour " + nomParticipant);
                 } else {
-                    System.out.println("⚠️ Participant non trouvé : " + nomParticipant);
+                    System.out.println("⚠️ Participant non trouvé ou non unique : " + nomParticipant);
                 }
             }
         }
 
         return ResponseEntity.ok(savedVisite);
     }
+
 
 
 
@@ -273,12 +390,13 @@ public class VisiteSecuriteController {
     public ResponseEntity<VisiteSecurite> modifierVisite(@PathVariable Long id, @RequestBody Map<String, Object> updatedVisiteData) {
         return visiteSecuriteService.getVisiteById(id)
                 .map(visite -> {
+                    // Update visit data
                     visite.setDate(LocalDate.parse((String) updatedVisiteData.get("date")));
                     visite.setHeureDebut(LocalTime.parse((String) updatedVisiteData.get("heureDebut")));
                     visite.setHeureFin(LocalTime.parse((String) updatedVisiteData.get("heureFin")));
                     visite.setEtat((String) updatedVisiteData.get("etat"));
 
-                    // ✅ Mise à jour de l'objetVisite si un nouvel ID est envoyé
+                    // Update objetVisite if new ID is provided
                     if (updatedVisiteData.containsKey("objetVisite")) {
                         Map<String, Object> objetVisiteData = (Map<String, Object>) updatedVisiteData.get("objetVisite");
                         Long objetVisiteId = ((Number) objetVisiteData.get("id")).longValue();
@@ -288,18 +406,21 @@ public class VisiteSecuriteController {
                         visite.setObjetVisite(objetVisite);
                     }
 
-                    // ✅ Mise à jour des participants
+                    // Update participants
                     if (updatedVisiteData.containsKey("participants")) {
                         List<Map<String, Object>> participantsData = (List<Map<String, Object>>) updatedVisiteData.get("participants");
 
-                        // 1️⃣ Supprimer les anciens participants
+                        // 1️⃣ Remove old participants
 
-                        // 2️⃣ Ajouter les nouveaux participants
+
+                        // 2️⃣ Add new participants
                         for (Map<String, Object> participantMap : participantsData) {
                             String nomParticipant = (String) participantMap.get("nom");
-                            Utilisateur utilisateur = utilisateurService.getUtilisateurByUsername(nomParticipant);
+                            Optional<Utilisateur> utilisateurs = utilisateurService.getUtilisateurByUsername(nomParticipant);
 
-                            if (utilisateur != null) {
+                            if (utilisateurs != null && !utilisateurs.isEmpty()) {
+                                Utilisateur utilisateur = utilisateurs.get();
+
                                 Participation participation = new Participation();
                                 participation.setVisite(visite);
 
@@ -312,16 +433,21 @@ public class VisiteSecuriteController {
                                 }
 
                                 participationService.createParticipation(participation);
+                                System.out.println("✅ Participation ajoutée pour " + nomParticipant);
+                            } else {
+                                System.out.println("⚠️ Participant non trouvé ou non unique : " + nomParticipant);
                             }
                         }
                     }
 
-                    // ✅ Enregistrer les modifications
+                    // Save the updated visit
                     visiteSecuriteService.updateVisite(id, visite);
                     return ResponseEntity.ok(visite);
                 })
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
+
+
 
 
 }

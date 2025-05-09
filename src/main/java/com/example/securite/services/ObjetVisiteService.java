@@ -40,5 +40,9 @@ public class ObjetVisiteService {
     public ObjetVisite updateObjetVisite(ObjetVisite objetVisite) {
         return objetVisiteRepository.save(objetVisite);
     }
+
+    public List<ObjetVisite> getObjetsVisiteByApsId(long apsId) {
+        return objetVisiteRepository.findByApsId(apsId);
+    }
 }
 

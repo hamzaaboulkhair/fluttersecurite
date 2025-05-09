@@ -1,5 +1,6 @@
 package com.example.securite.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -29,13 +30,13 @@ public class PlanAction {
     private String type;
     private String correctionImmediate;
     private String statut;
+    private String observation;
 
     @ManyToOne
-    @JoinColumn(name = "compte_rendu_id", insertable = false, updatable = false)
+    @JoinColumn(name = "compte_rendu_id", nullable = false)
+    @JsonBackReference
     private CompteRendu compteRendu;
 
-    @ManyToOne
-    @JoinColumn(name = "aps_id", nullable = false)
-    private APS aps;
+
 
 }

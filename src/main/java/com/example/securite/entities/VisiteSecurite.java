@@ -52,5 +52,8 @@ public class VisiteSecurite {
     @JoinColumn(name = "objet_visite_id")
     private ObjetVisite objetVisite;
 
+    @OneToMany(mappedBy = "visiteSecurite", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<AgentFunction> agentFunctions; // List of agent functions for this visi
+
 
 }

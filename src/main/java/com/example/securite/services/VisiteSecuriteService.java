@@ -1,17 +1,14 @@
 package com.example.securite.services;
 
 import com.example.securite.entities.*;
-import com.example.securite.repositories.ParticipationRepository;
-import com.example.securite.repositories.VisiteSecuriteRepository;
-import com.example.securite.repositories.APSRepository;
-import com.example.securite.repositories.VisiteurRepository;
-import com.example.securite.repositories.ResponsableRepository;
+import com.example.securite.repositories.*;
 import jakarta.transaction.Transactional;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -24,6 +21,7 @@ public class VisiteSecuriteService {
     private final VisiteurRepository visiteurRepository;
     private final APSRepository apsRepository;
     private final ResponsableRepository responsableRepository;
+    private final ObjetVisiteRepository objetVisiteRepository;
 
     @Autowired
     public VisiteSecuriteService(
@@ -31,12 +29,13 @@ public class VisiteSecuriteService {
             ParticipationRepository participationRepository,
             VisiteurRepository visiteurRepository,
             APSRepository apsRepository,
-            ResponsableRepository responsableRepository) {
+            ResponsableRepository responsableRepository, ObjetVisiteRepository objetVisiteRepository) {
         this.visiteSecuriteRepository = visiteSecuriteRepository;
         this.participationRepository = participationRepository;
         this.visiteurRepository = visiteurRepository;
         this.apsRepository = apsRepository;
         this.responsableRepository = responsableRepository;
+        this.objetVisiteRepository = objetVisiteRepository;
     }
 
     @Transactional
@@ -130,4 +129,27 @@ public class VisiteSecuriteService {
             throw new IllegalArgumentException("Type d'utilisateur inconnu");
         }
     }
+
+    @Transactional
+    public List<VisiteSecurite> getVisitesByAps(Long apsId) {
+        // Vérification que l'APS existe
+        if (!apsRepository.existsById(apsId)) {
+            throw new RuntimeException("APS non trouvé avec ID: " + apsId);
+        }
+
+        return visiteSecuriteRepository.findVisitesByApsIdWithDetails(apsId);
+    }
+
+    @Transactional
+    public List<VisiteSecurite> getVisitesByResponsable(Long responsableId) {
+        if (!responsableRepository.existsById(responsableId)) {
+            throw new RuntimeException("Responsable non trouvé avec ID: " + responsableId);
+        }
+
+        return visiteSecuriteRepository.findVisitesByResponsableIdWithDetails(responsableId);
+    }
+
+
+
+
 }

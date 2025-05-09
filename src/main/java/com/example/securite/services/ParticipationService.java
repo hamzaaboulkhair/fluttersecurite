@@ -1,6 +1,7 @@
 package com.example.securite.services;
 
 import com.example.securite.entities.Participation;
+import com.example.securite.entities.VisiteSecurite;
 import com.example.securite.repositories.ParticipationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -39,6 +40,9 @@ public class ParticipationService {
     public void deleteParticipation(Long id) {
         participationRepository.deleteById(id);
     }
+    public void deleteParticipationByVisite(VisiteSecurite visite) {
+        participationRepository.deleteByVisite(visite);
+    }
     public List<Map<String, Object>> getParticipantsByVisite(Long visiteId) {
         List<Participation> participations = participationRepository.findByVisiteId(visiteId);
 
@@ -74,6 +78,17 @@ public class ParticipationService {
 
         return participants;
     }
+
+    public void deleteParticipantsByVisite(VisiteSecurite visite) {
+        participationRepository.deleteByVisite(visite);
+    }
+
+
+
+
+
+
+
 
 }
 

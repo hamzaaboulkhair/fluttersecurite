@@ -14,9 +14,16 @@ import java.util.List;
 @AllArgsConstructor
 public class Visiteur extends Utilisateur {
 
+    @Column(name = "matricule")
     private String matricule;
+
+    @Column(name = "fonction")
     private String fonction;
+
+    @Column(name = "entite")
     private String entite;
+
+    @Column(name = "service")
     private String service;
 
 

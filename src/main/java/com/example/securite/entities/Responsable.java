@@ -17,7 +17,7 @@ public class Responsable extends Utilisateur {
     @OneToMany(mappedBy = "responsable", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Participation> participations;
     @JsonIgnore
-    @OneToMany(mappedBy = "aps")
+    @OneToMany(mappedBy = "responsable")
     private List<ObjetVisite> objetsVisites = new ArrayList<>();
 }
 

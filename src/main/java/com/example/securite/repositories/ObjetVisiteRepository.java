@@ -9,4 +9,5 @@ import java.util.List;
 public interface ObjetVisiteRepository extends JpaRepository<ObjetVisite, Long> {
     List<ObjetVisite> findByLocalisation(String localisation);
     List<ObjetVisite> findByNatureTravaux(String natureTravaux);
+    List<ObjetVisite> findByApsId(Long apsId);
 }

@@ -14,8 +14,6 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class APS extends Utilisateur {
-    @OneToMany(mappedBy = "aps", cascade = CascadeType.ALL)
-    private List<PlanAction> planActions = new ArrayList<>();
     @JsonIgnore
     @OneToMany(mappedBy = "aps", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Participation> participations = new ArrayList<>();

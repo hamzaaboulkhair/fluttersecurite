@@ -21,4 +21,5 @@ public interface ParticipationRepository extends JpaRepository<Participation, Lo
     @Query("SELECT p FROM Participation p WHERE p.visite.id = :visiteId")
     List<Participation> findByVisiteId(@Param("visiteId") Long visiteId);
 
+    void deleteByVisite(VisiteSecurite visite);
 }
